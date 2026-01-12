@@ -75,8 +75,29 @@ export class DebugController {
 
       const settings = await this.convex.query(api.settings.getUserSettings, { userId: userIdStr });
 
+      console.log('✅ [DEBUG ISSUE] Settings retrieved');
+      console.log('AI Provider:', settings?.aiProvider);
+      console.log('Has OpenAI Key:', !!settings?.openaiKey);
+      console.log('Has Anthropic Key:', !!settings?.anthropicKey);
+      console.log('Has Gemini Key:', !!settings?.geminiKey);
+
       if (!settings) {
-        return res.status(404).json({ error: 'User settings not found' });
+        return res.status(404).json({ error: 'User settings not found. Please configure API keys in Settings.' });
+      }
+
+      // Check if the required API key is available
+      const selectedProvider = aiProvider || settings.aiProvider;
+      const hasRequiredKey = 
+        (selectedProvider === 'openai' && settings.openaiKey) ||
+        (selectedProvider === 'claude' && settings.anthropicKey) ||
+        (selectedProvider === 'gemini' && settings.geminiKey);
+
+      if (!hasRequiredKey) {
+        console.error('❌ [DEBUG ISSUE] No API key for provider:', selectedProvider);
+        return res.status(400).json({ 
+          error: `No API key configured for ${selectedProvider}`,
+          details: 'Please add your API key in Settings page before using the debug feature.'
+        });
       }
 
       // Create or get debug session if sessionId provided

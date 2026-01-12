@@ -24,15 +24,24 @@ export function Settings() {
   const [showGeminiKey, setShowGeminiKey] = useState(false);
 
   // Get GitHub user from localStorage (same as Debug page)
-  const getGitHubUser = () => {
+  const getGitHubUser = (): string => {
     try {
+      // First try to get the Convex user ID
+      const storedUserId = localStorage.getItem('userId');
+      if (storedUserId) {
+        return storedUserId;
+      }
+
+      // Fallback to GitHub user
       const userStr = localStorage.getItem('github_user');
       if (userStr) {
         try {
           const user = JSON.parse(userStr);
-          return user.login || user.id || userStr;
+          // Convert to string to ensure it's always a string
+          const id = user.id || user.githubId || user.login || userStr;
+          return String(id);
         } catch {
-          return userStr;
+          return String(userStr);
         }
       }
     } catch (error) {
