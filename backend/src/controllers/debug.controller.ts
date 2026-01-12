@@ -209,7 +209,12 @@ export class DebugController {
     try {
       const { repositoryInfo, fixes, userId } = req.body;
 
-      console.log('Push to GitHub request:', { repositoryInfo, fixesCount: fixes?.length, userId });
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('🔄 [GITHUB PUSH] Request received');
+      console.log('User ID:', userId);
+      console.log('User ID type:', typeof userId);
+      console.log('Repository:', repositoryInfo);
+      console.log('Fixes count:', fixes?.length);
 
       if (!repositoryInfo || !fixes || fixes.length === 0) {
         return res.status(400).json({ error: 'Repository info and fixes are required' });
@@ -229,15 +234,35 @@ export class DebugController {
       // Get user to retrieve GitHub access token
       // If userId is a GitHub username (string), convert it to Convex user ID
       let user;
-      if (userId.startsWith('k') || userId.startsWith('j')) {
+      console.log('🔍 [GITHUB PUSH] Looking up user...');
+      
+      if (userId && (userId.startsWith('k') || userId.startsWith('j'))) {
         // Already a Convex ID
+        console.log('📋 [GITHUB PUSH] Using Convex ID directly:', userId);
         user = await this.convex.query(api.users.getUser, { userId });
       } else {
         // GitHub username - look up by githubId
+        console.log('🔍 [GITHUB PUSH] Looking up by GitHub ID:', userId);
         user = await this.convex.query(api.users.getUserByGithubId, { githubId: userId });
       }
 
-      if (!user || !user.accessToken) {
+      console.log('👤 [GITHUB PUSH] User lookup result:', user ? 'Found' : 'Not found');
+      if (user) {
+        console.log('   - User ID:', user._id);
+        console.log('   - GitHub ID:', user.githubId);
+        console.log('   - Has access token:', !!user.accessToken);
+      }
+
+      if (!user) {
+        console.log('❌ [GITHUB PUSH] User not found');
+        return res.status(401).json({
+          error: 'User not found',
+          details: `No user found with identifier: ${userId}`
+        });
+      }
+
+      if (!user.accessToken) {
+        console.log('❌ [GITHUB PUSH] User has no access token');
         return res.status(401).json({
           error: 'GitHub authentication required',
           details: 'Please log in with GitHub to push fixes'

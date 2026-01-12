@@ -37,7 +37,7 @@ const analysisService = new AnalysisService(githubService, aiService, convex);
 // Initialize controllers
 const reviewController = new ReviewController(convex);
 const analysisController = new AnalysisController(githubService, convex);
-const authController = new AuthController();
+const authController = new AuthController(convex);
 const settingsController = new SettingsController(convex);
 const debugController = new DebugController(convex);
 

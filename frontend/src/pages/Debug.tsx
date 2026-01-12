@@ -40,12 +40,19 @@ export function Debug() {
   // Get GitHub user from localStorage (set during login)
   const getGitHubUser = () => {
     try {
+      // First try to get the Convex user ID
+      const storedUserId = localStorage.getItem('userId');
+      if (storedUserId) {
+        return storedUserId;
+      }
+
+      // Fallback to GitHub user
       const userStr = localStorage.getItem('github_user');
       if (userStr) {
         // If it's a JSON object, parse it
         try {
           const user = JSON.parse(userStr);
-          return user.login || user.id || userStr;
+          return user.id || user.login || userStr; // Return Convex ID if available, else GitHub ID or username
         } catch {
           // If it's just a string, return it
           return userStr;

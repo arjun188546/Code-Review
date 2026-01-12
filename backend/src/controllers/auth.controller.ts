@@ -1,8 +1,16 @@
 import { Request, Response } from 'express';
 import { Octokit } from '@octokit/rest';
+import { ConvexHttpClient } from 'convex/browser';
+import { api } from '../../../convex/_generated/api';
 import { config } from '../config';
 
 export class AuthController {
+  private convex: ConvexHttpClient;
+
+  constructor(convex: ConvexHttpClient) {
+    this.convex = convex;
+  }
+
   async getLoginUrl(req: Request, res: Response) {
     const clientId = config.github.clientId;
     const redirectUri = `${config.server.baseUrl}/api/auth/callback`;
@@ -47,8 +55,36 @@ export class AuthController {
       const octokit = new Octokit({ auth: accessToken });
       const { data: user } = await octokit.users.getAuthenticated();
 
-      // Redirect to frontend with token
-      res.redirect(`${config.frontend.url}/auth/success?token=${accessToken}&user=${encodeURIComponent(JSON.stringify(user))}`);
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('🔐 [AUTH] GitHub OAuth Callback');
+      console.log('GitHub User:', user.login);
+      console.log('GitHub ID:', user.id);
+      console.log('Email:', user.email);
+
+      // Create or update user in Convex database
+      const userId = await this.convex.mutation(api.users.getOrCreateUser, {
+        githubId: String(user.id),
+        username: user.login,
+        email: user.email || undefined,
+        avatarUrl: user.avatar_url,
+        accessToken,
+      });
+
+      console.log('✅ [AUTH] User stored in Convex');
+      console.log('Convex User ID:', userId);
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
+      // Create user info object to pass to frontend
+      const userInfo = {
+        id: userId, // Convex user ID
+        githubId: String(user.id),
+        login: user.login,
+        avatar_url: user.avatar_url,
+        email: user.email,
+      };
+
+      // Redirect to frontend with token and userId
+      res.redirect(`${config.frontend.url}/auth/success?token=${accessToken}&user=${encodeURIComponent(JSON.stringify(userInfo))}&userId=${userId}`);
     } catch (error) {
       console.error('OAuth callback error:', error);
       res.status(500).json({ error: 'Authentication failed' });
