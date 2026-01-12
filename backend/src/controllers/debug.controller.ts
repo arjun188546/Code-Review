@@ -58,11 +58,22 @@ export class DebugController {
     try {
       const { issue, repositoryInfo, aiProvider, userId, sessionId } = req.body;
 
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('🔧 [DEBUG ISSUE] Request received');
+      console.log('User ID:', userId);
+      console.log('User ID type:', typeof userId);
+      console.log('Issue:', issue?.file);
+      console.log('Session ID:', sessionId);
+
       if (!issue) {
         return res.status(400).json({ error: 'Issue is required' });
       }
 
-      const settings = await this.convex.query(api.settings.getUserSettings, { userId });
+      // Ensure userId is a string
+      const userIdStr = String(userId);
+      console.log('Converted User ID:', userIdStr);
+
+      const settings = await this.convex.query(api.settings.getUserSettings, { userId: userIdStr });
 
       if (!settings) {
         return res.status(404).json({ error: 'User settings not found' });
@@ -72,23 +83,23 @@ export class DebugController {
       let debugSessionId = sessionId;
       if (!debugSessionId && repositoryInfo) {
         try {
-          console.log('Creating debug session for userId:', userId);
+          console.log('Creating debug session for userId:', userIdStr);
 
           // Get user by githubId first
           const user = await this.convex.query(api.users.getUserByGithubId, {
-            githubId: userId
+            githubId: userIdStr
           });
 
           if (!user) {
-            console.warn('User not found with githubId:', userId);
+            console.warn('User not found with githubId:', userIdStr);
             console.log('Attempting to create user...');
 
             // Try to create a basic user entry
             try {
               const newUserId = await this.convex.mutation(api.users.getOrCreateUser, {
-                githubId: userId,
-                username: userId,
-                email: `${userId}@github.com`,
+                githubId: userIdStr,
+                username: userIdStr,
+                email: `${userIdStr}@github.com`,
                 accessToken: 'temp', // This will be updated on next login
               });
               console.log('Created new user:', newUserId);
