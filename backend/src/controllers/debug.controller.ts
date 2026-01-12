@@ -227,7 +227,15 @@ export class DebugController {
       }
 
       // Get user to retrieve GitHub access token
-      const user = await this.convex.query(api.users.getUser, { userId });
+      // If userId is a GitHub username (string), convert it to Convex user ID
+      let user;
+      if (userId.startsWith('k') || userId.startsWith('j')) {
+        // Already a Convex ID
+        user = await this.convex.query(api.users.getUser, { userId });
+      } else {
+        // GitHub username - look up by githubId
+        user = await this.convex.query(api.users.getUserByGithubId, { githubId: userId });
+      }
 
       if (!user || !user.accessToken) {
         return res.status(401).json({
