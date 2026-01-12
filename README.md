@@ -1,5 +1,12 @@
 # 🤖 CodeReview AI Agent
 
+[![GitHub](https://img.shields.io/badge/GitHub-Code--Review-blue?logo=github)](https://github.com/arjun188546/Code-Review)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Node](https://img.shields.io/badge/Node-20%2B-brightgreen?logo=node.js)](https://nodejs.org/)
+[![React](https://img.shields.io/badge/React-18-blue?logo=react)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?logo=typescript)](https://www.typescriptlang.org/)
+[![Convex](https://img.shields.io/badge/Database-Convex-orange)](https://convex.dev)
+
 An intelligent AI-powered code review and debugging platform with multi-provider AI support, GitHub OAuth integration, and comprehensive analytics dashboard.
 
 ## 🚀 Features
